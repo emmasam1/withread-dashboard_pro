@@ -101,12 +101,12 @@ const Flagged = () => {
     if (!token) return;
 
     try {
-      await axios.delete(`${API_BASE_URL}/api/admin/posts/${postId}`, {
+      const res = await axios.delete(`${API_BASE_URL}/api/admin/posts/${postId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      messageApi.success("Post deleted successfully");
+      messageApi.success(res.data.message);
       fetchPosts();
     } catch (error) {
       console.error("Error deleting post:", error);
