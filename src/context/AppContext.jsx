@@ -1,21 +1,32 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
+import CryptoJS from "crypto-js"; // Don't forget to install this
 
-// Create the context
 const AppContext = createContext();
 
-// Create the provider component
 export const AppProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
+  const [token, setToken] = useState(null); 
 
   const API_BASE_URL = "https://withread-api-vah1.onrender.com";
-  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4OGUzZTNiMWY5YjhjZjdmNThhOTgwMiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1NDE2MjQ5NSwiZXhwIjoxNzU0NzY3Mjk1fQ.14Nf22hGhHAd1ipzbYdQu3XG16aHQd7F8fQ8h8LQ8C8'
+
+  useEffect(() => {
+    const encryptedToken = sessionStorage.getItem("token");
+    if (encryptedToken) {
+      try {
+        const bytes = CryptoJS.AES.decrypt(encryptedToken, "your-secret-key");
+        const decryptedToken = bytes.toString(CryptoJS.enc.Utf8);
+        setToken(decryptedToken);
+      } catch (error) {
+        console.error("Token decryption failed", error);
+      }
+    }
+  }, []);
 
   return (
-    <AppContext.Provider value={{ loading, setLoading, API_BASE_URL, token }}>
+    <AppContext.Provider value={{ loading, setLoading, API_BASE_URL, token, setToken }}>
       {children}
     </AppContext.Provider>
   );
 };
 
-// Custom hook for easier usage
 export const useApp = () => useContext(AppContext);

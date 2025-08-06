@@ -15,18 +15,27 @@ import System from "./pages/System";
 import SingleUser from "./components/SingleUser";
 import ActivityLog from "./components/ActivityLog";
 import TopPerforming from "./components/TopPerforming";
+import Login from "./auth/Login";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
     <Routes>
-      <Route path="" element={<DashbordLayout />}>
-        {/* Redirect from the root path to /dashboard */}
-        <Route path="/" element={<Navigate to="/dashboard" />} />
+      {/* Public Route */}
+      <Route path="/" element={<Login />} />
+
+      {/* Protected Routes */}
+      <Route
+        element={
+          <ProtectedRoute>
+            <DashbordLayout />
+          </ProtectedRoute>
+        }
+      >
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/user-management" element={<UserManagement />} />
         <Route path="/user-details/:userId" element={<SingleUser />} />
         <Route path="/activity-logs" element={<ActivityLog />} />
-        <Route path="/user-details/:userId" element={<SingleUser />} />
         <Route path="/content-management" element={<ContentManagement />} />
         <Route path="/analytics-&-insights" element={<Analytics />} />
         <Route path="/moderation-tools" element={<ModerationTools />} />
