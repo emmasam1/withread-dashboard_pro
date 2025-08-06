@@ -14,38 +14,41 @@ const Login = () => {
   const navigate = useNavigate();
   const [messageApi, contextHolder] = message.useMessage();
 
- 
-
   useEffect(() => {
     // Clear token if user navigates to login page
     sessionStorage.removeItem("token");
   }, [navigate.pathname]);
 
+  const SECRET_KEY = "Withread$#2025!Secure@KeyAesEncrypt";
+
   const onFinish = async (values) => {
-    const url = `${API_BASE_URL}/api/admin/login`;
-    setLoading(true);
-
     try {
-      const res = await axios.post(url, values);
-      const token = res.data.token;
+      setLoading(true);
 
-      const secretKey = "Withread$#2025!Secure@KeyAesEncrypt";
-      const encryptedToken = CryptoJS.AES.encrypt(token, secretKey).toString();
+      const res = await axios.post(`${API_BASE_URL}/api/admin/login`, values);
 
-      messageApi.success("Login successful!");
+      const { token, user } = res.data;
 
-      // Save encrypted token and user to sessionStorage
+      if (!token) {
+        throw new Error("Token not received from server");
+      }
+
+      // Encrypt token before saving
+      const encryptedToken = CryptoJS.AES.encrypt(token, SECRET_KEY).toString();
+
+      // Save token & user to sessionStorage
       sessionStorage.setItem("token", encryptedToken);
 
-      // Also update in context
+      // Set in context
       setToken(token);
 
-      navigate("dashboard");
+      messageApi.success("Login successful!");
+      navigate("/dashboard");
     } catch (error) {
-      messageApi.error(
-        error?.response?.data?.message || "Login failed. Try again."
-      );
-      console.error("Login error:", error);
+      const errorMessage =
+        error?.response?.data?.message || "Login failed. Please try again.";
+      messageApi.error(errorMessage);
+      console.error("Login Error:", error);
     } finally {
       setLoading(false);
     }

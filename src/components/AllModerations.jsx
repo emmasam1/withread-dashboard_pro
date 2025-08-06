@@ -30,6 +30,7 @@ const AllModerations = () => {
 
   useEffect(() => {
     const getFlaggedPost = async () => {
+      if (!token) return
       try {
         setLoading(true);
         const res = await axios.get(
@@ -41,7 +42,7 @@ const AllModerations = () => {
           }
         );
         setFlagged(res.data.reportedPosts || []);
-        console.log(res.data);
+        // console.log(res.data);
       } catch (error) {
         console.log(error);
         messageApi.error("Failed to load flagged posts");
