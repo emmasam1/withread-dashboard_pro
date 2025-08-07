@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Table, Button, Modal, Upload, Input, message, Form } from "antd";
-// import ImgCrop from 'antd-img-crop';
+import ImgCrop from 'antd-img-crop';
 
 const { Dragger } = Upload;
 

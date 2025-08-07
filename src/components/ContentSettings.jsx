@@ -14,8 +14,8 @@ const ContentSettings = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       if (!token) return;
-
       try {
+        setLoading(true);
         const res = await axios.get(
           `${API_BASE_URL}/api/system/system-config`,
           {
@@ -25,24 +25,28 @@ const ContentSettings = () => {
           }
         );
 
-        const config = res.data?.contentSettings ?? res.data;
-
-        if (config && typeof config === "object") {
+        // ✅ Extract the config object from res.data
+        const config = res.data?.config?.contentSettings;
+        if (
+          config &&
+          typeof config === "object" &&
+          Object.keys(config).length > 0
+        ) {
           setSettings(config);
         } else {
           console.error("Invalid config data. Response:", res.data);
           messageApi.error("Invalid config data from server.");
         }
-      } catch (error) {
-        console.error("Fetch error:", error);
-        messageApi.error("Failed to load settings.");
+      } catch (err) {
+        console.error("Error fetching settings:", err);
+        messageApi.error("Failed to fetch settings.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchSettings();
-  }, [API_BASE_URL, token]);
+  }, [token, API_BASE_URL]);
 
   const updateSettings = async (updated) => {
     try {
@@ -55,6 +59,7 @@ const ContentSettings = () => {
           },
         }
       );
+      console.log(res);
       messageApi.success(res.data?.message || "Settings updated.");
     } catch (err) {
       console.error("Update error:", err);
@@ -70,7 +75,6 @@ const ContentSettings = () => {
     setSettings(updated);
     updateSettings(updated);
   };
-  
 
   const data = [
     {
@@ -113,36 +117,34 @@ const ContentSettings = () => {
   ];
 
   return (
-  <div className="mt-4">
-    {contextHolder}
-    {loading
-      ? Array.from({ length: 6 }).map((_, i) => (
-          <div className="py-3 border-b border-gray-200" key={i}>
-            <Skeleton active paragraph={{ rows: 1 }} />
-          </div>
-        ))
-      : data.map((item, index) => (
-          <div
-            key={item.key}
-            className="flex justify-between items-center border-b-[#D0D0D033] border-b-[.1rem] py-3"
-          >
-            <div>
-              <p className="font-semibold">{item.title}</p>
-              <p className="text-[#333333B2] text-xs mt-1">{item.content}</p>
+    <div className="mt-4">
+      {contextHolder}
+      {loading
+        ? Array.from({ length: 6 }).map((_, i) => (
+            <div className="py-3 border-b border-gray-200" key={i}>
+              <Skeleton active paragraph={{ rows: 1 }} />
             </div>
+          ))
+        : data.map((item) => (
+            <motion.div
+              key={item.key}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="flex justify-between items-center border-b-[#D0D0D033] border-b-[.1rem] py-3"
+            >
+              <div>
+                <p className="font-semibold">{item.title}</p>
+                <p className="text-[#333333B2] text-xs mt-1">{item.content}</p>
+              </div>
 
-            {item.isButton ? (
-              <Button className="rounded-full bg-[#F6F6F6] hover:!bg-[#F6F6F6] text-[#333333B2] text-xs border-none">
-                {item.key === "contentLengthLimit"
-                  ? `${settings?.contentLengthLimit || 0} Words Length`
-                  : `${settings?.mediaUploadLimitMB || 0} MB Limit`}
-              </Button>
-            ) : (
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
+              {item.isButton ? (
+                <Button className="rounded-full bg-[#F6F6F6] hover:!bg-[#F6F6F6] text-[#333333B2] text-xs border-none">
+                  {item.key === "contentLengthLimit"
+                    ? `${settings?.contentLengthLimit || 0} Words Length`
+                    : `${settings?.mediaUploadLimitMB || 0} MB Limit`}
+                </Button>
+              ) : (
                 <Segmented
                   value={settings?.[item.key] ? "Enable" : "Disable"}
                   className="w-48"
@@ -167,13 +169,11 @@ const ContentSettings = () => {
                   ]}
                   onChange={(val) => handleToggle(item.key, val)}
                 />
-              </motion.div>
-            )}
-          </div>
-        ))}
-  </div>
-);
-
+              )}
+            </motion.div>
+          ))}
+    </div>
+  );
 };
 
 export default ContentSettings;
