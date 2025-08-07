@@ -10,7 +10,7 @@ import { useApp } from "../context/AppContext";
 import CryptoJS from "crypto-js";
 
 const Login = () => {
-  const { loading, setLoading, API_BASE_URL, setToken, setUser } = useApp();
+  const { loading, setLoading, API_BASE_URL, setToken } = useApp();
   const navigate = useNavigate();
   const [messageApi, contextHolder] = message.useMessage();
 
@@ -27,7 +27,7 @@ const Login = () => {
 
       const res = await axios.post(`${API_BASE_URL}/api/admin/login`, values);
 
-      const { token, user } = res.data;
+      const { token } = res.data;
 
       if (!token) {
         throw new Error("Token not received from server");

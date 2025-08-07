@@ -4,7 +4,7 @@ import CryptoJS from "crypto-js";
 
 const AppContext = createContext();
 
-const SECRET_KEY = "your-secret-key"; // 🔐 Use same key in login and context
+const SECRET_KEY = "Withread$#2025!Secure@KeyAesEncrypt";
 
 export const AppProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
