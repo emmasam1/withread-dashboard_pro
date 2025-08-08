@@ -1,13 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Segmented, Button } from "antd";
+import { Segmented, Button, Skeleton } from "antd";
 
 import arrowLeft from "../assets/arrow-left.png";
 import user_img_dark from "../assets/user_img_dark.png";
 import user_img_2 from "../assets/user_img_2.png";
+import { useApp } from "../context/AppContext";
+import axios from "axios";
 
-const ActivityLog = () => { 
+const ActivityLog = () => {
   const [selectedSegment, setSelectedSegment] = useState("Post Submission");
+  const { API_BASE_URL, token, loading, setLoading } = useApp();
+
+  const wornUser = async() => {
+    try {
+      setLoading(true)
+      const res = await axios.get(`${API_BASE_URL}`)
+    } catch (error) {
+      
+    }
+  }
 
   const activityLogs = {
     "Post Submission": [
@@ -174,8 +186,11 @@ const ActivityLog = () => {
                 <img
                   src={log.img}
                   alt="User"
-                  className={`${selectedSegment === "Comments" ? "w-10 h-10 rounded-full relative -top-10" : "w-10 h-10 rounded-full "}`}
-
+                  className={`${
+                    selectedSegment === "Comments"
+                      ? "w-10 h-10 rounded-full relative -top-10"
+                      : "w-10 h-10 rounded-full "
+                  }`}
                 />
               )}
               {log.img_2 && (
@@ -211,10 +226,14 @@ const ActivityLog = () => {
                 </div>
                 <div className="flex gap-5">
                   <Button className="text-black bg-[#F3F3F4] rounded-full hover:!bg-[#F3F3F4] hover:!text-[black] outline-none border-none">
-                  {selectedSegment === "Comments" ? "Flag Comment" : "Delet Post"}
+                    {selectedSegment === "Comments"
+                      ? "Flag Comment"
+                      : "Delet Post"}
                   </Button>
                   <Button className="text-white bg-black rounded-full hover:!bg-black hover:!text-white outline-none">
-                    {selectedSegment === "Comments" ? "Delete Comment" : "Delet Post"}
+                    {selectedSegment === "Comments"
+                      ? "Delete Comment"
+                      : "Delet Post"}
                   </Button>
                 </div>
               </div>

@@ -14,43 +14,44 @@ const UserManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
+  const getUsers = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${API_BASE_URL}/api/admin/all`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const formatted = res.data?.users?.map((user, index) => ({
+        key: user._id,
+        fullName: `${user.firstName ?? ""} ${user.lastName ?? ""}`,
+        username: user.username ?? "",
+        email: user.email ?? "",
+        country: user.country ?? "—",
+        date_joined: new Date(user.createdAt).toLocaleDateString(),
+        status: user.isVerified ? "Verified" : "Not Verified",
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatar: user.avatar,
+        original: user,
+      }));
+      setUsers(formatted);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!token) return;
-
-    const getUsers = async () => {
-      try {
-        setLoading(true);
-        const res = await axios.get(`${API_BASE_URL}/api/admin/all`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const formatted = res.data?.users?.map((user, index) => ({
-          key: user._id,
-          fullName: `${user.firstName ?? ""} ${user.lastName ?? ""}`,
-          username: user.username ?? "",
-          email: user.email ?? "",
-          country: user.country ?? "—",
-          date_joined: new Date(user.createdAt).toLocaleDateString(),
-          status: user.isVerified ? "Verified" : "Not Verified",
-          firstName: user.firstName,
-          lastName: user.lastName,
-          avatar: user.avatar,
-          original: user,
-        }));
-        setUsers(formatted);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     getUsers();
   }, [token]);
 
   const getInitials = (firstName, lastName) => {
-    return `${(firstName?.[0] || "").toUpperCase()}${(lastName?.[0] || "").toUpperCase()}`;
+    return `${(firstName?.[0] || "").toUpperCase()}${(
+      lastName?.[0] || ""
+    ).toUpperCase()}`;
   };
 
   const columns = [
@@ -112,7 +113,10 @@ const UserManagement = () => {
     {
       title: "",
       render: (record) => (
-        <Link to={`/user-details/${record.key}`} state={{ record: record.original }}>
+        <Link
+          to={`/user-details/${record.key}`}
+          state={{ record: record.original }}
+        >
           <Button className="text-white bg-black rounded-full hover:!bg-black hover:!text-white">
             Details
           </Button>
@@ -121,10 +125,11 @@ const UserManagement = () => {
     },
   ];
 
-  const filteredUsers = users.filter((user) =>
-    user.fullName.toLowerCase().includes(searchText.toLowerCase()) ||
-    user.username.toLowerCase().includes(searchText.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchText.toLowerCase())
+  const filteredUsers = users.filter(
+    (user) =>
+      user.fullName.toLowerCase().includes(searchText.toLowerCase()) ||
+      user.username.toLowerCase().includes(searchText.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchText.toLowerCase())
   );
 
   return (

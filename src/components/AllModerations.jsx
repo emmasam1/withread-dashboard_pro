@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Segmented, Button, message, Skeleton } from "antd";
+import { Segmented, Button, message, Skeleton, Modal, Input } from "antd";
 import verify from "../assets/verify.png";
 import dot from "../assets/dot.png";
 import info from "../assets/info-circle.png";
@@ -16,9 +16,57 @@ const AllModerations = () => {
   const [flagged, setFlagged] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [warningMessage, setWarningMessage] = useState("");
+  const [warningPostId, setWarningPostId] = useState(null);
+  const [warningLoading, setWarningLoading] = useState(false);
 
   const [messageApi, contextHolder] = message.useMessage();
   const { loading, setLoading, API_BASE_URL, token } = useApp();
+
+  const [isWarnModal, setIsWarnModal] = useState(false);
+
+  const sendWarning = async () => {
+    if (!warningMessage || !warningPostId) {
+      messageApi.warning("Please enter a warning message.");
+      return;
+    }
+
+    try {
+      setWarningLoading(true);
+      await axios.post(
+        `${API_BASE_URL}/api/admin/warnings/${warningPostId}`,
+        { warningMessage },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      messageApi.success("Warning sent successfully.");
+      setIsWarnModal(false);
+      setWarningMessage("");
+      setWarningPostId(null);
+    } catch (error) {
+      console.error("Error sending warning:", error);
+      messageApi.error("Failed to send warning.");
+    } finally {
+      setWarningLoading(false);
+    }
+  };
+
+  const showModal = (post) => {
+    setIsWarnModal(true);
+    setWarningPostId(post?.reportId); // ✅ This will set the correct ID
+    setSelectedPost(post); // Optional
+  };
+
+  // const handleOk = () => {
+  //   setIsWarnModal(false);
+  // };
+  // const handleCancel = () => {
+  //   setIsWarnModal(false);
+  // };
 
   const formatNumber = (num) => {
     if (!num) return "0";
@@ -30,7 +78,7 @@ const AllModerations = () => {
 
   useEffect(() => {
     const getFlaggedPost = async () => {
-      if (!token) return
+      if (!token) return;
       try {
         setLoading(true);
         const res = await axios.get(
@@ -148,6 +196,49 @@ const AllModerations = () => {
                     </div>
                   </div>
 
+                  <Modal
+                    title="Warn User"
+                    open={isWarnModal}
+                    footer={null} 
+                    onCancel={() => {
+                      setIsWarnModal(false);
+                      setWarningMessage("");
+                      setWarningPostId(null);
+                    }}
+                  >
+                    <div className="space-y-4">
+                      <p>Enter a warning message for the user:</p>
+                      <Input.TextArea
+                        value={warningMessage}
+                        onChange={(e) => setWarningMessage(e.target.value)}
+                        rows={4}
+                        placeholder="Your post violates our community rules..."
+                        className="!resize-none"
+                      />
+
+                      <div className="flex justify-end gap-2 mt-4">
+                        <Button
+                          onClick={() => {
+                            setIsWarnModal(false);
+                            setWarningMessage("");
+                            setWarningPostId(null);
+                          }}
+                        >
+                          Cancel
+                        </Button>
+
+                        <Button
+                          type="primary"
+                         className="text-white bg-black rounded-full hover:!bg-black hover:!text-white outline-none"
+                          onClick={sendWarning}
+                          loading={warningLoading}
+                        >
+                          Send Warning
+                        </Button>
+                      </div>
+                    </div>
+                  </Modal>
+
                   <div className="flex gap-4">
                     <Button
                       className="text-black bg-[#F3F3F4] rounded-full hover:!bg-[#F3F3F4] hover:!text-black outline-none border-none"
@@ -155,7 +246,10 @@ const AllModerations = () => {
                     >
                       Review Post
                     </Button>
-                    <Button className="text-black bg-[#F3F3F4] rounded-full hover:!bg-[#F3F3F4] hover:!text-black outline-none border-none">
+                    <Button
+                      onClick={() => showModal(post)}
+                      className="text-black bg-[#F3F3F4] rounded-full hover:!bg-[#F3F3F4] hover:!text-black outline-none border-none"
+                    >
                       Warn User
                     </Button>
                     <Button className="text-white bg-black rounded-full hover:!bg-black hover:!text-white outline-none">
@@ -177,73 +271,6 @@ const AllModerations = () => {
               </div>
             ))
           )}
-
-          {/* {flagged.length === 0 ? (
-            <div className="text-center text-gray-400 py-10">
-              No flagged posts found.
-            </div>
-          ) : (
-            flagged.map((post) => (
-              <div key={post._id} className="border-b border-gray-200">
-                <div className="flex justify-between mt-4">
-                  <div className="flex gap-2">
-                    <div className="rounded-full h-11 w-11">
-                      <img
-                        src={post?.post?.author?.avatar}
-                        alt="avatar"
-                        className="rounded-full h-11 w-11 object-cover"
-                      />
-                    </div>
-                    <div className="flex gap-2 items-center -mt-6">
-                      <p className="font-semibold">
-                        @{post?.post?.author?.username}
-                      </p>
-                      <img src={verify} alt="" className="w-4" />
-                      <img src={dot} alt="" className="w-1 h-1" />
-                      <span className="text-xs text-gray-500">
-                        {post?.reportedAt
-                          ? `${new Date(
-                              post.reportedAt
-                            ).toLocaleDateString()} | ${new Date(
-                              post.reportedAt
-                            ).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}`
-                          : "Unknown date"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-4">
-                    <Button
-                      className="text-black bg-[#F3F3F4] rounded-full hover:!bg-[#F3F3F4] hover:!text-black outline-none border-none"
-                      onClick={() => openEditModal(post)}
-                    >
-                      Review Post
-                    </Button>
-                    <Button className="text-black bg-[#F3F3F4] rounded-full hover:!bg-[#F3F3F4] hover:!text-black outline-none border-none">
-                      Warn User
-                    </Button>
-                    <Button className="text-white bg-black rounded-full hover:!bg-black hover:!text-white outline-none">
-                      Delete Post
-                    </Button>
-                  </div>
-                </div>
-
-                <p className="ml-14 -mt-5 font-semibold mb-2">
-                  {post?.post?.title}
-                </p>
-                <div className="ml-14 text-gray-400 text-xs truncate mb-3">
-                  {post?.post?.content?.slice(0, 180)}
-                </div>
-                <div className="ml-14 flex items-center gap-2 mb-3 bg-[#F3F3F4] rounded-full px-2 py-1 w-96">
-                  <img src={info} alt="" className="w-4" />
-                  <p className="text-xs">{post.reason}</p>
-                </div>
-              </div>
-            ))
-          )} */}
         </>
       )}
 
