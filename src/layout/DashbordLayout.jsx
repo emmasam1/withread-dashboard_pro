@@ -10,6 +10,18 @@ import setting from "../assets/setting.png";
 import global from "../assets/global.png";
 import notification from "../assets/notification-bing.png";
 import search from "../assets/search-normal.png";
+import {
+  MdOutlineGavel,        // Moderation Tools
+  MdOutlineSettings,     // Site Settings
+  MdOutlineAttachMoney,  // Monetization
+  MdOutlineSearch,       // SEO
+  MdOutlineSecurity,     // Security
+  MdOutlineBrush,        // Customizations
+  MdOutlineBuild         // System Config
+} from "react-icons/md";
+import { BiNetworkChart } from "react-icons/bi"; // SEO alternative
+
+const iconStyle = { fontSize: "18px", color: "#fff" };
 
 const { Sider, Content, Header } = Layout;
 
@@ -42,41 +54,13 @@ const items = [
     "/analytics-&-insights",
     <img src={analysis} alt="" className="w-4" />
   ),
-  getItem(
-    "Moderation Tools",
-    "/moderation-tools",
-    <img src={setting} alt="" className="w-4" />
-  ),
-  getItem(
-    "Site Settings & Config",
-    "/site-settings-&-config",
-    <img src={setting} alt="" className="w-4" />
-  ),
-  getItem(
-    "Monetization & Adverts",
-    "/monetization-&-adverts",
-    <img src={setting} alt="" className="w-4" />
-  ),
-  getItem(
-    "SEO & Content Discovery",
-    "/seo-&-content-discovery",
-    <img src={setting} alt="" className="w-4" />
-  ),
-  getItem(
-    "Security & Logs",
-    "/security-&-logs",
-    <img src={setting} alt="" className="w-4" />
-  ),
-  getItem(
-    "Customizations",
-    "/customizations",
-    <img src={setting} alt="" className="w-4" />
-  ),
-  getItem(
-    "System Configuration",
-    "/system-configuration",
-    <img src={setting} alt="" className="w-4" />
-  ),
+  getItem("Moderation Tools", "/moderation-tools", <MdOutlineGavel style={iconStyle} />),
+  getItem("Site Settings & Config", "/site-settings-&-config", <MdOutlineSettings style={iconStyle} />),
+  getItem("Monetization & Adverts", "/monetization-&-adverts", <MdOutlineAttachMoney style={iconStyle} />),
+  getItem("SEO & Content Discovery", "/seo-&-content-discovery", <BiNetworkChart style={iconStyle} />),
+  getItem("Security & Logs", "/security-&-logs", <MdOutlineSecurity style={iconStyle} />),
+  getItem("Customizations", "/customizations", <MdOutlineBrush style={iconStyle} />),
+  getItem("System Configuration", "/system-configuration", <MdOutlineBuild style={iconStyle} />),
 ];
 
 const DashboardLayout = () => {
