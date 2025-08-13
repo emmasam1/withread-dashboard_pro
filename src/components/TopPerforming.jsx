@@ -1,22 +1,28 @@
-import React, { useState } from "react";
-import { Button, Table, Modal, Input, Dropdown, Space } from "antd";
+import React, { useState, useEffect } from "react";
+import { Button, Table, Modal, Input, Dropdown, Space, Skeleton, message } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import arrowLeft from "../assets/arrow-left.png";
-import user from "../assets/user_img.png";
-import bgImg from "../assets/bgImg.png";
 import verify from "../assets/verify.png";
 import checked from "../assets/checked.png";
 import msg from "../assets/msg.png";
 import share from "../assets/share.png";
 import search from "../assets/search-normal.png";
 import arrowDown from "../assets/arrow-down.png";
+import placeholder from "../assets/placeholder-image.png";
+import { useApp } from "../context/AppContext";
+import axios from "axios";
 
-// Replace 'user' with the actual image or avatar logic if needed, or mock it for now
 const TopPerforming = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { API_BASE_URL, token, loading, setLoading } = useApp();
+  const [creators, setCreators] = useState([]);
+  const [selectedCreator, setSelectedCreator] = useState(null);
+  const [messageApi, contextHolder] = message.useMessage();
+     const [highlightingId, setHighlightingId] = useState(null);
 
-  const showModal = () => {
+  const showModal = (record) => {
+    setSelectedCreator(record);
     setIsModalOpen(true);
   };
 
@@ -24,44 +30,103 @@ const TopPerforming = () => {
     setIsModalOpen(false);
   };
 
+  const markPostFeatured = async (id) => {
+    if (!token || !id) return;
+    try {
+      setHighlightingId(id);
+      const res = await axios.patch(
+        `${API_BASE_URL}/api/admin/posts/${id}/feature`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      message.success(res?.data?.message);
+      console.log(res)
+    } catch (error) {
+      console.error(error);
+      message.error("Failed to highlight post");
+    } finally {
+      setHighlightingId(null);
+    }
+  };
+
+  const getTopCreator = async () => {
+    if (!token) return;
+    try {
+      setLoading(true);
+      const res = await axios.get(
+        `${API_BASE_URL}/api/user/top-creators?page=1&limit=10`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setCreators(res?.data?.data || []);
+      // console.log(res.data);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getTopCreator();
+  }, [token]);
+
+  const formatNumber = (num) => {
+    if (!num && num !== 0) return "-";
+    if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + "M";
+    if (num >= 1_000) return (num / 1_000).toFixed(1) + "K";
+    return num;
+  };
+
   const columns = [
     {
       title: "Creators",
-      dataIndex: "user",
-      key: "user",
-      render: (text, record) => (
+      dataIndex: "firstName",
+      key: "firstName",
+      render: (_, record) => (
         <div className="flex items-center">
-          <img
-            src={user}
-            alt={record.user}
-            className="w-8 h-8 rounded-full mr-2"
-          />
-          {record.user}
+          {record.avatar ? (
+            <img
+              src={record.avatar}
+              alt={`${record.firstName} ${record.lastName}`}
+              className="w-8 h-8 rounded-full mr-2 object-cover"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-full mr-2 flex items-center justify-center bg-gray-400 text-white text-sm font-bold">
+              {record.firstName?.[0]?.toUpperCase()}
+              {record.lastName?.[0]?.toUpperCase()}
+            </div>
+          )}
+          {record.firstName} {record.lastName}
         </div>
       ),
     },
     {
-      title: "Like",
-      dataIndex: "like",
-      key: "like",
+      title: "Likes",
+      dataIndex: ["topPost", "likesCount"],
+      key: "likes",
+      render: (val) => `${formatNumber(val)} Likes`,
     },
     {
       title: "Views",
-      dataIndex: "view",
-      key: "view",
+      dataIndex: "totalViews",
+      key: "views",
+      render: (val) => `${formatNumber(val)} Views`,
     },
     {
-      title: "Share",
-      dataIndex: "share",
-      key: "share",
+      title: "Shares",
+      dataIndex: "totalShares",
+      key: "shares",
+      render: (val) => `${formatNumber(val)} Shares`,
     },
     {
       title: "",
       width: 100,
-      render: (record) => (
+      render: (_, record) => (
         <Button
           className="text-white bg-black rounded-full hover:!bg-black hover:!text-white outline-none"
-          onClick={showModal}
+          onClick={() => showModal(record)}
         >
           Details
         </Button>
@@ -69,75 +134,15 @@ const TopPerforming = () => {
     },
   ];
 
-  const users = [
-    {
-      key: 1,
-      user: "James Bogin",
-      like: "100K Likes",
-      view: "200K Views",
-      share: "200K Shares",
-    },
-    {
-      key: 2,
-      user: "Sarah Williams",
-      like: "150K Likes",
-      view: "250K Views",
-      share: "180K Shares",
-    },
-    {
-      key: 3,
-      user: "Michael Smith",
-      like: "120K Likes",
-      view: "220K Views",
-      share: "190K Shares",
-    },
-    {
-      key: 4,
-      user: "Jessica Brown",
-      like: "180K Likes",
-      view: "300K Views",
-      share: "250K Shares",
-    },
-    {
-      key: 5,
-      user: "David Johnson",
-      like: "80K Likes",
-      view: "150K Views",
-      share: "100K Shares",
-    },
-    {
-      key: 6,
-      user: "Laura Davis",
-      like: "200K Likes",
-      view: "350K Views",
-      share: "300K Shares",
-    },
-    {
-      key: 7,
-      user: "Chris Lee",
-      like: "130K Likes",
-      view: "270K Views",
-      share: "230K Shares",
-    },
-  ];
-
   const items = [
-    {
-      label: "1 Week",
-      key: "0",
-    },
-    {
-      label: "1 Month",
-      key: "1",
-    },
-    {
-      label: "3 Months",
-      key: "3",
-    },
+    { label: "1 Week", key: "0" },
+    { label: "1 Month", key: "1" },
+    { label: "3 Months", key: "3" },
   ];
 
   return (
     <div>
+      {contextHolder}
       <Link
         to="/dashboard"
         className="flex gap-2 w-20 hover:!text-black items-center"
@@ -153,14 +158,12 @@ const TopPerforming = () => {
               <img src={search} className="w-4 h-4 cursor-pointer" />
               <Input
                 placeholder="Search user....."
-                className="ml-2 bg-transparent border-none outline-none focus:!outline-none focus:bg-transparent hover:!bg-transparent focus:border-transparent"
+                className="ml-2 bg-transparent border-none outline-none focus:!outline-none"
               />
             </div>
             <Dropdown
               className="!text-black bg-[#F6F6F6] p-1 rounded-md px-2"
-              menu={{
-                items,
-              }}
+              menu={{ items }}
               trigger={["click"]}
             >
               <a onClick={(e) => e.preventDefault()}>
@@ -175,14 +178,19 @@ const TopPerforming = () => {
             </Button>
           </div>
         </div>
-        <Table
-          columns={columns}
-          dataSource={users}
-          size="small"
-          scroll={{ x: "max-content" }}
-          pagination={false}
-          className="mt-3"
-        />
+        {loading ? (
+          <Skeleton active paragraph={{ rows: 5 }} />
+        ) : (
+          <Table
+            columns={columns}
+            dataSource={creators}
+            rowKey={(record) => record.authorId}
+            size="small"
+            scroll={{ x: "max-content" }}
+            pagination={false}
+            className="mt-3"
+          />
+        )}
       </div>
 
       <Modal
@@ -191,64 +199,93 @@ const TopPerforming = () => {
         footer={null}
         onCancel={handleCancel}
       >
-        <div className="bg-[#F6F6F6] p-2 rounded-md">
-          <div className="flex mb-2 gap-2">
-            <img src={user} alt="" className="rounded-full h-9" />
-            <div>
-              <div className="flex gap-2 items-center">
-                <h1 className="font-semibold text-xs">Ramsey Gary</h1>
-                <img src={verify} alt="" className="w-4" />
-                <p className="text-[#333333CC] text-xs">@ramseygry12</p>
+        {selectedCreator ? (
+          <div className="bg-[#F6F6F6] p-2 rounded-md">
+            <div className="flex mb-2 gap-2">
+              {selectedCreator.avatar ? (
+                <img
+                  src={selectedCreator.avatar}
+                  alt={`${selectedCreator.firstName} ${selectedCreator.lastName}`}
+                  className="rounded-full h-9 w-9 object-cover"
+                />
+              ) : (
+                <div className="rounded-full h-9 w-9 flex items-center justify-center bg-gray-400 text-white text-xs font-bold">
+                  {selectedCreator.firstName?.[0]?.toUpperCase()}
+                  {selectedCreator.lastName?.[0]?.toUpperCase()}
+                </div>
+              )}
+              <div>
+                <div className="flex gap-2 items-center flex-wrap">
+                  <h1 className="font-semibold text-xs">
+                    {selectedCreator.firstName} {selectedCreator.lastName}
+                  </h1>
+                  <img src={verify} alt="" className="w-4" />
+                  <p className="text-[#333333CC] text-xs">
+                    @{selectedCreator.username}
+                  </p>
+                </div>
+                <p className="text-[#333333CC] text-xs">
+                  {new Date(
+                    selectedCreator.topPost?.createdAt
+                  ).toLocaleDateString()}
+                </p>
               </div>
-              <p className="text-[#333333CC] text-xs">29-09-2024</p>
             </div>
-          </div>
-          <div className="h-42 rounded-md overflow-hidden">
-            <img src={bgImg} alt="" className="object-cover" />
-          </div>
 
-          <div className="mt-3">
-            <h1 className="font-semibold text-xs">
-              New Solar Panel Technology that Sell Sunlight at Night Increases
-              Efficiency by 40%
-            </h1>
-            <p className="mt-2 text-xs text-[#333333BF]">
-              New Solar Panel Technology that Sell Sunlight at Night Increases
-              Efficiency by 40% New Solar Panel Technology that Sell Sunlight at
-              Night Increases Efficiency by 40%, New Solar Panel Technology that
-              Sell Sunlight at Night Increases Efficiency by 40%, New Solar
-              Panel Technology that Sell Sunlight at Night Increases Efficiency
-              by 40% New Solar Panel Technology that Sell Sunlight at Night
-              Increases Efficiency by 40% New Solar Panel Technology that Sell
-              Sunlight at Night Increases Efficiency by 40%....
-            </p>
-          </div>
+            <div className="h-42 rounded-md overflow-hidden">
+              <img
+                src={selectedCreator.topPost?.images?.[0] || placeholder}
+                alt={selectedCreator.topPost?.title || "Post image"}
+                className="w-full h-full object-cover"
+              />
+            </div>
 
-          <div className="flex justify-between items-center mt-4 mb-2">
-            <div className="flex gap-4 items-center">
-              <div className="flex items-center gap-1">
-                <img src={checked} alt="" className="w-3 h-2" />
-                <p className="text-[#333333] text-xs">50k Likes</p>
-              </div>
-              <div className="flex items-center gap-1">
-                <img src={msg} alt="" className="w-3" />
-                <p className="text-[#333333] text-xs">3k Comments</p>
-              </div>
-              <div className="flex items-center gap-1">
-                <img src={share} alt="" className="w-4" />
-                <p className="text-[#333333] text-xs">9.6k Share</p>
-              </div>
+            <div className="mt-3">
+              <h1 className="font-semibold text-xs">
+                {selectedCreator.topPost?.title}
+              </h1>
+              <p className="mt-2 text-xs text-[#333333BF]">
+                {selectedCreator.topPost?.content}
+              </p>
             </div>
-            <div>
-              <p className="text-[#333333] text-xs">1M Total Impressions</p>
+
+            <div className="flex justify-between items-center mt-4 mb-2">
+              <div className="flex gap-4 items-center">
+                <div className="flex items-center gap-1">
+                  <img src={checked} alt="" className="w-3 h-2" />
+                  <p className="text-[#333333] text-xs">
+                    {formatNumber(selectedCreator.topPost?.likesCount)} Likes
+                  </p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <img src={msg} alt="" className="w-3" />
+                  <p className="text-[#333333] text-xs">
+                    {formatNumber(selectedCreator.topPost?.commentsCount)}{" "}
+                    Comments
+                  </p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <img src={share} alt="" className="w-4" />
+                  <p className="text-[#333333] text-xs">Share</p>
+                </div>
+              </div>
+              <div>
+                <p className="text-[#333333] text-xs">
+                  {formatNumber(selectedCreator.topPost?.impressions)} Total
+                  Impressions
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <p>No record selected</p>
+        )}
 
         <div className="flex justify-end mt-4">
           <Button
+            onClick={() => markPostFeatured(selectedCreator?.topPost?._id)}
+            loading={highlightingId === selectedCreator?.topPost?._id}
             className="text-white bg-black rounded-full hover:!bg-black hover:!text-white outline-none"
-            // onClick={suspendAccount}
           >
             Pin on Featured
           </Button>
