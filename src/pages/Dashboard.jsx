@@ -37,7 +37,7 @@ const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCreator, setSelectedCreator] = useState(null);
   const [messageApi, contextHolder] = message.useMessage();
-   const [highlightingId, setHighlightingId] = useState(null);
+  const [highlightingId, setHighlightingId] = useState(null);
 
   const showModal = (record) => {
     setSelectedCreator(record); // store clicked record
@@ -87,26 +87,24 @@ const Dashboard = () => {
     getTopCreator();
   }, [token]);
 
-
-
-const markPostFeatured = async (id) => {
-  if (!token || !id) return;
-  try {
-    setHighlightingId(id);
-    const res = await axios.patch(
-      `${API_BASE_URL}/api/admin/posts/${id}/feature`,
-      {},
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    message.success(res?.data?.message);
-    console.log(res)
-  } catch (error) {
-    console.error(error);
-    message.error("Failed to highlight post");
-  } finally {
-    setHighlightingId(null);
-  }
-};
+  const markPostFeatured = async (id) => {
+    if (!token || !id) return;
+    try {
+      setHighlightingId(id);
+      const res = await axios.patch(
+        `${API_BASE_URL}/api/admin/posts/${id}/feature`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      message.success(res?.data?.message);
+      console.log(res);
+    } catch (error) {
+      console.error(error);
+      message.error("Failed to highlight post");
+    } finally {
+      setHighlightingId(null);
+    }
+  };
 
   const data = [
     {
@@ -312,7 +310,7 @@ const markPostFeatured = async (id) => {
             </div>
 
             {/* Top Post Image */}
-            <div className="h-42 rounded-md overflow-hidden">
+            <div className="h-[350px] rounded-md overflow-hidden">
               <img
                 src={selectedCreator.topPost?.images?.[0] || placeholder}
                 alt={selectedCreator.topPost?.title || "Post image"}
@@ -368,9 +366,12 @@ const markPostFeatured = async (id) => {
           <Button
             onClick={() => markPostFeatured(selectedCreator?.topPost?._id)}
             loading={highlightingId === selectedCreator?.topPost?._id}
+            disabled={selectedCreator?.topPost?.isFeatured} // disable if already featured
             className="text-white bg-black rounded-full hover:!bg-black hover:!text-white outline-none"
           >
-            Pin on Featured
+            {selectedCreator?.topPost?.isFeatured
+              ? "Featured"
+              : "Pin to Featured"}
           </Button>
         </div>
       </Modal>

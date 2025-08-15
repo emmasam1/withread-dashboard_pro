@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Button, Table, Modal, Input, Dropdown, Space, Skeleton, message } from "antd";
+import {
+  Button,
+  Table,
+  Modal,
+  Input,
+  Dropdown,
+  Space,
+  Skeleton,
+  message,
+} from "antd";
 import { DownOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import arrowLeft from "../assets/arrow-left.png";
@@ -19,7 +28,7 @@ const TopPerforming = () => {
   const [creators, setCreators] = useState([]);
   const [selectedCreator, setSelectedCreator] = useState(null);
   const [messageApi, contextHolder] = message.useMessage();
-     const [highlightingId, setHighlightingId] = useState(null);
+  const [highlightingId, setHighlightingId] = useState(null);
 
   const showModal = (record) => {
     setSelectedCreator(record);
@@ -40,7 +49,7 @@ const TopPerforming = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       message.success(res?.data?.message);
-      console.log(res)
+      console.log(res);
     } catch (error) {
       console.error(error);
       message.error("Failed to highlight post");
@@ -232,7 +241,7 @@ const TopPerforming = () => {
               </div>
             </div>
 
-            <div className="h-42 rounded-md overflow-hidden">
+            <div className="h-[350px] rounded-md overflow-hidden">
               <img
                 src={selectedCreator.topPost?.images?.[0] || placeholder}
                 alt={selectedCreator.topPost?.title || "Post image"}
@@ -285,9 +294,12 @@ const TopPerforming = () => {
           <Button
             onClick={() => markPostFeatured(selectedCreator?.topPost?._id)}
             loading={highlightingId === selectedCreator?.topPost?._id}
+            disabled={selectedCreator?.topPost?.isFeatured} // disable if already featured
             className="text-white bg-black rounded-full hover:!bg-black hover:!text-white outline-none"
           >
-            Pin on Featured
+            {selectedCreator?.topPost?.isFeatured
+              ? "Featured"
+              : "Pin to Featured"}
           </Button>
         </div>
       </Modal>
